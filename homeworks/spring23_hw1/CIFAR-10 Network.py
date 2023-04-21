@@ -20,6 +20,7 @@ from tensorflow import keras
 from keras import layers
 import tensorflow_datasets as tfds
 from matplotlib import pyplot as plt
+from keras.layers import *
 
 
 
@@ -91,34 +92,35 @@ if __name__ == '__main__':
         #####################################
         # Edit code here -- Update the model definition
         # You will need a dense last layer with 10 output channels to classify the 10 classes
+        # Model design inspired by https://www.geeksforgeeks.org/cifar-10-image-classification-in-tensorflow/#
         # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-        layers.Conv2D(64,(3,3),padding="same"),
-        layers.Dropout(0.2),
-
-        layers.Conv2D(64,(3,3),padding="same"),
-        layers.MaxPool2D((2,2)),
-        layers.Dropout(0.2),
-
-        layers.Conv2D(128,(3,3),padding="same"),
-        layers.MaxPool2D((2,2)),
-        layers.Dropout(0.2),
-
-        layers.Conv2D(128,(3,3),padding="same"),
-        layers.MaxPool2D((2,2)),
-        layers.Dropout(0.2),
-
-
-        layers.Flatten(),
-        layers.Dense(4096, activation="relu"),
-        layers.Dropout(0.2),
-        layers.Dense(1024, activation='relu'),
-        layers.Dropout(0.2),
-        layers.Dense(512, activation='relu'),
-        layers.Dropout(0.2),
-        layers.Dense(128, activation='relu'),
-        layers.Dropout(0.2),              
-        # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        tf.keras.layers.Dense(10)
+        Conv2D(32, (3, 3), activation='relu', padding='same'),
+        BatchNormalization(),
+        Conv2D(32, (3, 3), activation='relu', padding='same'),
+        BatchNormalization(),
+        MaxPooling2D((2, 2)),
+        
+        Conv2D(64, (3, 3), activation='relu', padding='same'),
+        BatchNormalization(),
+        Conv2D(64, (3, 3), activation='relu', padding='same'),
+        BatchNormalization(),
+        MaxPooling2D((2, 2)),
+        
+        Conv2D(128, (3, 3), activation='relu', padding='same'),
+        BatchNormalization(),
+        Conv2D(128, (3, 3), activation='relu', padding='same'),
+        BatchNormalization(),
+        MaxPooling2D((2, 2)),
+        
+        Flatten(),
+        Dropout(0.2),
+        
+        # Hidden layer
+        Dense(1024, activation='relu'),
+        Dropout(0.2),
+        
+        # last hidden layer i.e.. output layer
+        Dense(10, activation='softmax')
     ])
 
     # Log the training hyper-parameters for WandB
@@ -129,8 +131,8 @@ if __name__ == '__main__':
         # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
         "learning_rate": 0.001,
         "optimizer": "adam",
-        "epochs": 30,
-        "batch_size": 32
+        "epochs": 20,
+        "batch_size": 16
         # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     }
 
@@ -142,7 +144,7 @@ if __name__ == '__main__':
 
     history = model.fit(
         ds_cifar10_train,
-        epochs=30,
+        epochs=10,
         validation_data=ds_cifar10_test,
         callbacks=[WandbMetricsLogger()]
     )
